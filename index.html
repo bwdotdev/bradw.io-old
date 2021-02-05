@@ -138,7 +138,7 @@
       init()
 
       let previous = null
-      tCanvas.addEventListener('mousemove', ({ pageX, pageY }) => {
+      document.body.addEventListener('mousemove', ({ pageX, pageY }) => {
         resetTop()
         drawCircle(tCtx, pageX, pageY, 100, 'transparent')
       })
