@@ -3,96 +3,246 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <meta name="theme-color" content="#393e46">
-    <meta name="msapplication-navbutton-color" content="#393e46">
-    <meta name="apple-mobile-web-app-status-bar-style" content="#393e46">
+    <meta name="theme-color" content="#101010">
+    <meta name="msapplication-navbutton-color" content="#101010">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#101010">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <meta name="title" content="bradw - Software Developer">
     <meta name="author" content="Bradley Watton">
-    <link rel="canonical" href="https://bradleyw.me">
+    <meta content="bradw" property="og:title">
+    <meta content="Software Engineer" property="og:description">
+    <meta content="https://bradw.io" property="og:url">
+    <meta content="https://bradw.io/favicon.png" property="og:image">
+    <link rel="canonical" href="https://bradw.io">
 
-    <title>bradw.io</title>
+    <title>bradw</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,300;0,600&display=swap');
-
       * {
         box-sizing: border-box;
       }
 
       html, body {
         height: 100%;
-        margin: 0;
         width: 100%;
       }
 
       body {
-        font-family: 'Source Code Pro', monospace;
-      }
-
-      main {
-        background-color: #232931;
-        width: 100vw;
-        height: calc(100% - 100px);
-        padding: 0 2rem 20vh 2rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-
-      h1 {
-        color: #4ecca3;
-        font-weight: 300;
-        font-size: 5rem;
         margin: 0;
+        background-color: #101010;
       }
 
-      h1 span {
-        font-weight: 600;
-        font-style: italic;
+      canvas, #overlay {
+        position: fixed;
+        top: 0;
+        bottom: 0;
       }
 
-      h2 {
-        color: #eeeeee;
-        margin: 0 0 0 5px;
+      #overlay {
+        display: none;
       }
 
-      footer {
-        align-items: center;
-        background-color: #393e46;
+      #overlay.visible {
         display: flex;
-        height: 100px;
-        justify-content: space-evenly;
       }
 
-      footer a {
-        color: #eeeeee;
-        text-decoration: none;
+      #term {
+        color: #FFFFFF;
       }
 
-      footer a:hover,
-      footer a:focus,
-      footer a:active {
-        text-decoration: underline;
+      #term a {
+        color: #FFFFFF;
       }
 
-      @media only screen and (max-width: 644px) {
-        :root {
-          font-size: 3vw;
-        }
+      #term a:hover {
+        color: #C0C0C0;
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>bradw</h1>
-      <h2>i make pointless things.</h2>
-    </main>
-    <footer>
-      <a href="https://github.com/bradw" target="_blank">github/bradw</a>
-      <a href="https://twitter.com/bradw_io" target="_blank">twitter/bradw_io</a>
-    </footer>
+    <canvas id="bottom"></canvas>
+    <canvas id="top"></canvas>
+    <div id="overlay">
+      <code id="term"></code>
+    </div>
+
+    <script>
+      /** @type HTMLCanvasElement */
+      const bCanvas = document.getElementById('bottom')
+
+      bCanvas.width = window.innerWidth
+      bCanvas.height = window.innerHeight
+
+      /** @type HTMLCanvasElement */
+      const tCanvas = document.getElementById('top')
+
+      tCanvas.width = window.innerWidth
+      tCanvas.height = window.innerHeight
+
+      const bCtx = bCanvas.getContext('2d')
+      const tCtx = tCanvas.getContext('2d')
+
+      const overlay = document.getElementById('overlay')
+      const term = document.getElementById('term')
+
+      const config = {
+        bgColour: '#101010',
+        bottomText: 'Bradley Watton',
+        topText: 'ブラッドリー',
+        textX: window.innerWidth / 2,
+        textY: window.innerHeight / 2,
+        textColor: '#FFFFFF',
+        bottomTextStyle: '60px Arial',
+        topTextStyle: '60px Arial',
+      }
+
+      function init() {
+        resetTop()
+        doText(bCtx, config.bottomText, config.bottomTextStyle, config.textColor, config.textX, config.textY)
+        doText(bCtx, '(press space)', '20px Arial', config.textColor, config.textX, config.textY + 40)
+      }
+
+      function resetTop() {
+        tCtx.clearRect(0, 0, tCanvas.width, tCanvas.height)
+        tCtx.beginPath()
+        tCtx.rect(0, 0, tCanvas.width, tCanvas.height)
+        tCtx.fillStyle = '#101010'
+        tCtx.fill()
+
+        doText(tCtx, config.topText, config.topTextStyle, config.textColor, config.textX, config.textY)
+      }
+
+      function drawCircle(ctx, x, y, radius, fillColor) {
+        if(fillColor === 'transparent') {
+          ctx.globalCompositeOperation = 'destination-out'
+          ctx.fillStyle = '#ff0000'
+        } else {
+          ctx.fillStyle = fillColor
+        }
+        ctx.beginPath()
+        ctx.moveTo(x, y)
+        ctx.arc(x, y, radius, 0, Math.PI * 2, false)
+        ctx.fill()
+        ctx.globalCompositeOperation = 'source-over'
+      }
+
+      function doText(ctx, text, style, fillColor, x, y) {
+        ctx.textAlign = "center"
+        ctx.font = style
+        ctx.fillStyle = fillColor
+        ctx.fillText(text, x, y)
+      }
+
+      init()
+
+      let previous = null
+      tCanvas.addEventListener('mousemove', ({ pageX, pageY }) => {
+        resetTop()
+        drawCircle(tCtx, pageX, pageY, 100, 'transparent')
+      })
+
+      async function wait(ms) {
+        return new Promise(resolve => {
+          setTimeout(() => resolve(), ms)
+        })
+      }
+
+      async function repeat(n, func) {
+        for(let i = 0; i < n; i++) {
+          await func()
+        }
+      }
+
+      let text = ''
+      const cursor = '█'
+      let cursorOn = false
+      async function doCursor(n) {
+        const span = document.createElement('span')
+        term.appendChild(span)
+
+        await repeat(n, async () => {
+          span.innerText = cursorOn ? cursor : ''
+          cursorOn = !cursorOn
+
+          await wait(500)
+        })
+
+        term.removeChild(span)
+      }
+
+      const nbspChar = '_'
+      function nbsp(n) {
+        return nbspChar.repeat(n)
+      }
+
+      const linkChar = '='
+      function link(href) {
+        return `${linkChar}${href}${linkChar}`
+      }
+
+      const phrases = [
+        ['Initialising boot sequence...', 6],
+        ['Booted.', 2],
+        ['Logging in as \'bradley\' with password \'*******\'...', 6],
+        ['Logged in successfully. Current user\'s details:', 0],
+        ['', 0],
+        [`Bradley Watton${nbsp(6)}Software Engineer @ SHL`, 0],
+        [`CV/Resume:${nbsp(10)}${link('https://cv.bradw.io')}`, 0],
+        [`GitHub:${nbsp(13)}${link('https://github.com/bradw')}`, 0],
+        [`LinkedIn:${nbsp(11)}${link('https://www.linkedin.com/in/bradley-watton-83387a140')}`, 0],
+      ]
+      let typing = false
+      let typeDelay = 50
+      async function doBootup() {
+        typing = true
+        let currentEl = term
+        let inLink = false
+
+        for(const [phrase, delay] of phrases) {
+          for(let i = 0; i < phrase.length; i++) {
+            const char = phrase[i]
+            if(char === linkChar) {
+              inLink = !inLink
+
+              if(inLink) {
+                const link = document.createElement('a')
+                let href = ''
+                for(const char2 of phrase.slice(i)) {
+                  if(char2 === linkChar) continue
+
+                  href += char2
+                }
+                link.href = href
+                link.target = '_blank'
+                currentEl = term.appendChild(link)
+              } else {
+                currentEl = term
+              }
+            } else {
+              currentEl.innerHTML += char === nbspChar ? '&nbsp;' : char
+              await wait(typeDelay)
+
+              cursorOn = false
+            }
+          }
+
+          await doCursor(typeDelay === 0 ? 0 : delay)
+          currentEl.innerHTML += '<br />'
+        }
+      }
+
+      document.body.addEventListener('keyup', e => {
+        if(e.keyCode == 32){
+          if(typing) {
+            typeDelay = 0
+          } else {
+            overlay.classList.add('visible')
+            doBootup()
+          }
+        }
+      })
+    </script>
   </body>
 </html>
